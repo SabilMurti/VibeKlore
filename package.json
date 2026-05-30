@@ -1,0 +1,17 @@
+{
+  "name": "vibeklore",
+  "version": "1.1.0",
+  "description": "Automated AI Developer Autopilot Dashboard & CLI",
+  "main": "bin/klore.js",
+  "bin": {
+    "Klore": "./bin/klore.js"
+  },
+  "scripts": {
+    "start": "node dashboard/app.js",
+    "dashboard": "node dashboard/app.js",
+    "test": "node math.test.js && node /home/murtix/Projects/test-healing/run-tests.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

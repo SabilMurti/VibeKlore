@@ -20,6 +20,7 @@ Commands:
                            (Contoh: Klore plan "buat web kasir sederhana")
   mode <new|maintenance>   Ubah mode autopilot (membuat proyek baru / perbaikan proyek whitelist)
   cron <HH:MM>             Atur waktu eksekusi cron job harian autopilot (Contoh: Klore cron 07:05)
+  dashboard                Buka Express Web Dashboard untuk memantau autopilot secara interaktif
   state                    Tampilkan status autopilot saat ini
   whitelist add <path>     Tambahkan path proyek ke whitelist untuk mode maintenance
   run                      Jalankan autopilot secara manual sekarang juga
@@ -154,6 +155,16 @@ switch (command) {
     const child = spawn('python3', [ORCHESTRATOR_PATH], { stdio: 'inherit' });
     child.on('close', (code) => {
       console.log(`Autopilot selesai dengan exit code: ${code}`);
+      process.exit(code);
+    });
+    break;
+
+  case 'dashboard':
+    console.log('🚀 Memulai VibeKlore Web Dashboard...');
+    const serverScript = path.join(VIBE_DIR, 'dashboard', 'app.js');
+    const serverProcess = spawn('node', [serverScript], { stdio: 'inherit' });
+    serverProcess.on('close', (code) => {
+      console.log(`Dashboard server dihentikan dengan exit code: ${code}`);
       process.exit(code);
     });
     break;

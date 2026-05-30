@@ -424,6 +424,193 @@ def run_resume_sync(project_path, config):
         return False
 
 
+def setup_git_branch(project_path, project_name):
+    """Memastikan repositori git terinisialisasi dan membuat branch baru untuk autopilot"""
+    print(f"[Orchestrator] Menyiapkan branch Git untuk {project_name}...")
+    try:
+        # Init git jika belum ada
+        if not os.path.exists(os.path.join(project_path, ".git")):
+            subprocess.run(["git", "init"], cwd=project_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # Create initial commit if empty
+            subprocess.run(["git", "checkout", "-b", "main"], cwd=project_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            with open(os.path.join(project_path, ".gitignore"), "w") as f:
+                f.write("node_modules/\n.env\nmcp.db\n")
+            subprocess.run(["git", "add", "."], cwd=project_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["git", "commit", "-m", "Initial commit from autopilot"], cwd=project_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # Dapatkan nama branch baru
+        branch_name = f"feature/autopilot-{project_name}-{int(time.time())}"
+        subprocess.run(["git", "checkout", "-b", branch_name], cwd=project_path, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print(f"[Orchestrator] ✅ Branch baru dibuat: {branch_name}")
+        return branch_name
+    except Exception as e:
+        print(f"[Orchestrator] Gagal menyiapkan branch Git: {e}")
+        return "main"
+
+def run_project_tests(project_path, config):
+    """Mencari test suite dan menjalankannya. Mengembalikan (success, error_output)"""
+    print("[Orchestrator] Menjalankan test suite verifikasi...")
+    
+    # Pilih test command secara cerdas
+    test_command = config.get("test_command")
+    if not test_command:
+        if os.path.exists(os.path.join(project_path, "run-tests.js")):
+            test_command = "node run-tests.js"
+        elif os.path.exists(os.path.join(project_path, "package.json")):
+            # Cek apakah package.json memiliki test script
+            try:
+                with open(os.path.join(project_path, "package.json"), "r") as f:
+                    pkg = json.load(f)
+                    if "test" in pkg.get("scripts", {}):
+                        test_command = "npm test"
+            except:
+                pass
+        elif os.path.exists(os.path.join(project_path, "phpunit.xml")):
+            test_command = "vendor/bin/phpunit"
+               
+    if not test_command:
+        print("[Orchestrator] Tidak ada test suite terdeteksi. Melewati verifikasi.")
+        return True, ""
+           
+    print(f"[Orchestrator] Menjalankan perintah tes: `{test_command}`")
+    try:
+        res = subprocess.run(
+            test_command,
+            shell=True,
+            cwd=project_path,
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        stdout_stderr = (res.stdout or "") + "\n" + (res.stderr or "")
+        if res.returncode == 0:
+            print("[Orchestrator] ✅ Seluruh pengujian lolos!")
+            return True, stdout_stderr
+        else:
+            print(f"[Orchestrator] ❌ Pengujian gagal dengan exit code {res.returncode}.")
+            return False, stdout_stderr
+    except Exception as e:
+        print(f"[Orchestrator] ⚠️ Error saat menjalankan tes: {e}")
+        return False, str(e)
+
+def get_github_repo_info(project_path):
+    """Mendapatkan owner dan repo dari git remote origin"""
+    try:
+        remotes = subprocess.check_output(["git", "remote", "-v"], cwd=project_path).decode('utf-8')
+        for line in remotes.split("\n"):
+            if "origin" in line and "(push)" in line:
+                parts = line.split()
+                if len(parts) >= 2:
+                    url = parts[1]
+                    if "github.com" in url:
+                        url = url.replace("git@github.com:", "").replace("https://github.com/", "")
+                        url = url.replace(".git", "")
+                        owner_repo = url.split("/")
+                        if len(owner_repo) == 2:
+                            return owner_repo[0], owner_repo[1]
+    except Exception as e:
+        print(f"[Orchestrator] Gagal mendapatkan remote GitHub: {e}")
+    return None
+
+def create_github_pr(project_path, branch_name, project_name, config):
+    """Membuat Pull Request di GitHub menggunakan GitHub API"""
+    print(f"[Orchestrator] Mencoba membuat Pull Request untuk branch {branch_name}...")
+    
+    repo_info = get_github_repo_info(project_path)
+    if not repo_info:
+        print("[Orchestrator] Tidak dapat mendeteksi remote repo GitHub. Melewati pembuatan PR.")
+        return False
+        
+    owner, repo = repo_info
+    github_token = get_github_token() or (os.getenv("GITHUB_TOKEN") or config.get("github_token"))
+    if not github_token:
+        print("[Orchestrator] GITHUB_TOKEN tidak ditemukan. Melewati pembuatan PR.")
+        return False
+        
+    # Deskripsi PR
+    description = "Autopilot code generated by VibeKlore.\n\n"
+    if os.path.exists(PLAN_PATH):
+        try:
+            with open(PLAN_PATH, "r") as f:
+                description += f.read()[:2000]
+        except:
+            pass
+            
+    payload = {
+        "title": f"Autopilot: scaffold/enhance {project_name}",
+        "head": branch_name,
+        "base": "main",
+        "body": description
+    }
+    
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls"
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+        "User-Agent": "VibeKlore-Autopilot"
+    }
+    
+    try:
+        import urllib.request
+        data = json.dumps(payload).encode('utf-8')
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=15) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            pr_url = res_data.get("html_url")
+            print(f"[Orchestrator] ✅ Pull Request berhasil dibuat: {pr_url}")
+            return pr_url
+    except Exception as e:
+        print(f"[Orchestrator] Gagal membuat Pull Request di GitHub: {e}")
+        return False
+
+def execute_with_self_healing(project_path, task_desc, config, agy_active, used_fallback):
+    """Menjalankan coding agent (Antigravity atau Aider) dengan loop perbaikan jika tes gagal"""
+    max_healing_tries = 3
+    current_try = 1
+    current_task_desc = task_desc
+    active_fallback = used_fallback
+    
+    while current_try <= max_healing_tries:
+        if current_try > 1:
+            print(f"\n[Orchestrator] 🔄 Memulai Iterasi Self-Healing #{current_try - 1}...")
+            
+        success = False
+        log_or_err = ""
+        
+        if agy_active and not active_fallback:
+            success, log_or_err = execute_antigravity(project_path, current_task_desc)
+            if not success:
+                print("[Orchestrator] Gagal mengeksekusi dengan Antigravity. Mencoba Aider...")
+                active_fallback = True
+                success = execute_aider_fallback(project_path, current_task_desc, config)
+        else:
+            success = execute_aider_fallback(project_path, current_task_desc, config)
+            
+        if not success:
+            print(f"[Orchestrator] Agent gagal menulis kode pada percobaan #{current_try}.")
+            return False, active_fallback
+            
+        # Jalankan test suite
+        test_passed, test_output = run_project_tests(project_path, config)
+        if test_passed:
+            print("[Orchestrator] ✅ Proyek berhasil diselesaikan dan terverifikasi!")
+            return True, active_fallback
+            
+        # Jika gagal, siapkan feedback error untuk iterasi berikutnya
+        current_try += 1
+        if current_try <= max_healing_tries:
+            current_task_desc = (
+                f"Hasil pengujian sebelumnya GAGAL. Tolong perbaiki kode Anda agar seluruh tes lolos.\n\n"
+                f"### PERINTAH TES:\n{config.get('test_command') or 'Otomatis'}\n\n"
+                f"### ERROR OUTPUT:\n{test_output}\n\n"
+                f"Tinjau kode yang rusak dan lakukan perbaikan. Jangan merusak fungsionalitas lain yang sudah benar."
+            )
+        else:
+            print(f"[Orchestrator] ❌ Batas iterasi self-healing ({max_healing_tries}) tercapai.")
+            return False, active_fallback
+
+
 def main():
     config = load_config()
     state = load_state()
@@ -523,10 +710,13 @@ def main():
         # Jika enhance, pastikan ada di whitelist
         project_path = plan_meta.get("target_path")
         if project_path not in config.get("allow_maintenance", []):
-            print(f"[Orchestrator] ⚠️ Proyek '{project_path}' tidak terdaftar di whitelist pengerjaan. Menggunakan folder default VibeCoding.")
+            print(f"[Orchestrator] ⚠️ Proyek '{project_path}' tidak terdaftar di whitelist pengerjaan. Menggunakan folder default VibeKlore.")
             project_path = VIBE_DIR
             
     os.makedirs(project_path, exist_ok=True)
+    
+    # Siapkan branch git sebelum menulis kode
+    branch_name = setup_git_branch(project_path, project_name)
     
     # Cek kuota agy
     agy_active = check_agy_quota()
@@ -534,20 +724,28 @@ def main():
     success = False
     used_fallback = False
     
-    if agy_active:
-        # Jalankan dengan Antigravity CLI
-        success, log = execute_antigravity(project_path, task_desc)
-        if not success:
-            print("[Orchestrator] Gagal mengeksekusi dengan Antigravity. Mencoba fallback ke Aider...")
-            used_fallback = True
-            success = execute_aider_fallback(project_path, task_desc, config)
-    else:
-        # Kuota limit dari awal, jalankan Aider fallback
-        print("[Orchestrator] Antigravity CLI limit sejak awal. Menjalankan Aider Fallback...")
-        used_fallback = True
-        success = execute_aider_fallback(project_path, task_desc, config)
+    # Jalankan pengerjaan dengan loop self-healing
+    success, used_fallback = execute_with_self_healing(
+        project_path, task_desc, config, agy_active, used_fallback
+    )
         
     if success:
+        # Commit sisa perubahan di branch (jika ada yang terlewat)
+        if config.get("git_auto_commit", True):
+            subprocess.run(["git", "add", "."], cwd=project_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(["git", "commit", "-m", "[Autopilot] Auto-commit changes and fixes"], cwd=project_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            
+        # PUSH & PULL REQUEST CREATION
+        pr_url = ""
+        try:
+            print(f"[Orchestrator] Pushing branch {branch_name} ke GitHub...")
+            subprocess.run(["git", "push", "-u", "origin", branch_name], cwd=project_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            pr_url = create_github_pr(project_path, branch_name, project_name, config)
+        except Exception as e:
+            print(f"[Orchestrator] Gagal mendorong branch / membuat PR: {e}")
+
+        pr_info = f"\n- **Pull Request**: {pr_url}" if pr_url else ""
+
         if used_fallback:
             # Set status ke FALLBACK_LOCAL agar cron berikutnya me-resume ke agy
             state["state"] = "FALLBACK_LOCAL"
@@ -558,7 +756,8 @@ def main():
             
             # Kirim Discord Notif Fallback
             msg = f"⚠️ **Autopilot Warning: Running in Fallback Mode**\n" \
-                  f"Proyek `{project_name}` sedang dikerjakan menggunakan model fallback lokal (CometAPI `gpt-4o-mini`) karena kuota Antigravity CLI sedang habis/limit."
+                  f"Proyek `{project_name}` sedang dikerjakan menggunakan model fallback lokal (CometAPI `gpt-4o-mini`) karena kuota Antigravity CLI sedang habis/limit.\n" \
+                  f"Branch: `{branch_name}`\nPR URL: {pr_url or 'N/A'}"
             send_discord_notification(webhook_url, msg)
         else:
             # Sukses penuh dengan agy
@@ -575,7 +774,8 @@ def main():
                 
             # Kirim Discord Notif Sukses
             msg = f"🌅 **Morning Report: Autopilot Success!**\n" \
-                  f"Proyek baru `{project_name}` berhasil dibuat di `{project_path}` menggunakan Antigravity CLI secara native!"
+                  f"Proyek baru `{project_name}` berhasil dibuat di `{project_path}` menggunakan Antigravity CLI secara native!\n" \
+                  f"Branch: `{branch_name}`\nPR URL: {pr_url or 'N/A'}"
             send_discord_notification(webhook_url, msg)
             
             # Tulis Morning Report markdown
@@ -583,6 +783,7 @@ def main():
                           f"Pagi Murtix! Autopilot telah membuat proyek baru untukmu:\n\n" \
                           f"- **Nama**: {project_name}\n" \
                           f"- **Lokasi**: [Folder Project](file://{project_path})\n" \
+                          f"- **Branch**: `{branch_name}`{pr_info}\n" \
                           f"- **Deskripsi**: {task_desc}\n" \
                           f"- **Status**: ✅ Sukses Ter-Scaffold via Antigravity CLI!\n\n" \
                           f"*Laporan dibuat pada {time.strftime('%Y-%m-%d %H:%M:%S')}.*"

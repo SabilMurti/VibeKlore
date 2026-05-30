@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeKlore Autopilot Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-hover: rgba(255, 255, 255, 0.07);
+      --primary: #818cf8;
+      --primary-glow: rgba(129, 140, 248, 0.3);
+      --accent: #ec4899;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 2rem 4rem;
+      border-bottom: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.3);
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(to right, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
+    }
+
+    header .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .main-container {
+      max-width: 1400px;
+      width: 100%;
+      margin: 2rem auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 2rem;
+      flex-grow: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 2rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 0.8rem;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    input[type="text"], select, textarea {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 0.8rem 1rem;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px var(--primary-glow);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(129, 140, 248, 0.5);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--glass-hover);
+      border: 1px solid var(--glass-border);
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: none;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success) 0%, #10b981 100%);
+      box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
+    }
+
+    .btn-success:hover {
+      box-shadow: 0 6px 16px rgba(52, 211, 153, 0.5);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.4rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      gap: 0.4rem;
+    }
+
+    .status-idle {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .status-running {
+      background: rgba(129, 140, 248, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(129, 140, 248, 0.3);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-fallback {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--warning);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+
+    .status-error {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    .log-container {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      overflow-y: auto;
+      flex-grow: 1;
+      height: 480px;
+      max-height: 600px;
+      white-space: pre-wrap;
+      color: #e2e8f0;
+      position: relative;
+    }
+
+    .log-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .log-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .log-container::-webkit-scrollbar-thumb {
+      background: var(--glass-border);
+      border-radius: 4px;
+    }
+
+    .log-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+
+    footer {
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--glass-border);
+      margin-top: 2rem;
+      backdrop-filter: blur(8px);
+      background: rgba(15, 23, 42, 0.2);
+    }
+
+    .spinner {
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid var(--glass-border);
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transform: translateY(150%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .notification.show {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>VibeKlore Autopilot</h1>
+      <div class="subtitle">AI-Powered Software Engineer Dashboard</div>
+    </div>
+    <div id="state-badge-container">
+      <div class="status-badge status-idle">
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#34d399;"></span>
+        IDLE
+      </div>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <!-- LEFT CARD: Configurations -->
+    <div class="card">
+      <div class="card-title">Setelan Autopilot</div>
+      
+      <!-- Pre-instruction -->
+      <div class="form-group">
+        <label for="pre-instruction">Pre-Instruction (Target Proyek Berikutnya)</label>
+        <textarea id="pre-instruction" rows="3" placeholder="Masukkan ide proyek (contoh: buat website portfolio responsif)"></textarea>
+        <button id="btn-save-plan" class="btn btn-secondary" style="align-self: flex-end; padding: 0.5rem 1rem; font-size: 0.85rem;">Simpan Rencana</button>
+      </div>
+
+      <!-- Mode & Cron Time -->
+      <div class="row">
+        <div class="form-group">
+          <label for="config-mode">Mode Autopilot</label>
+          <select id="config-mode">
+            <option value="new">Proyek Baru (New)</option>
+            <option value="maintenance">Pemeliharaan (Maintenance)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="config-cron">Waktu Cron Harian</label>
+          <input type="text" id="config-cron" placeholder="07:05">
+        </div>
+      </div>
+
+      <!-- Whitelist Paths -->
+      <div class="form-group">
+        <label for="config-whitelist">Whitelist Paths (Maintenance Mode)</label>
+        <textarea id="config-whitelist" rows="3" placeholder="/home/murtix/Projects/VibeKlore"></textarea>
+      </div>
+
+      <!-- Webhook Discord -->
+      <div class="form-group">
+        <label for="config-webhook">Discord Webhook URL</label>
+        <input type="text" id="config-webhook" placeholder="https://discord.com/api/webhooks/...">
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <button id="btn-save-config" class="btn btn-secondary" style="flex: 1;">Simpan Setelan</button>
+        <button id="btn-run" class="btn btn-success" style="flex: 1.2;">
+          🚀 Jalankan Autopilot
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT CARD: Active Monitor & Logs -->
+    <div class="card" style="display: flex; flex-direction: column;">
+      <div class="card-title">
+        Monitor Aktivitas Live
+        <button id="btn-clear-logs" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 4px;">Clear Screen</button>
+      </div>
+
+      <div class="form-group" style="flex-grow: 1; display: flex; flex-direction: column;">
+        <label>Console Logs (Auto-scroll)</label>
+        <div id="log-monitor" class="log-container">=== Memuat log aktivitas... ===</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="notification">
+    <span id="toast-text">Pemberitahuan berhasil!</span>
+  </div>
+
+  <footer>
+    VibeKlore Autopilot © 2026. Made with Google Antigravity & Aider.
+  </footer>
+
+  <script>
+    const elState = document.getElementById('state-badge-container');
+    const elPreInstruction = document.getElementById('pre-instruction');
+    const elMode = document.getElementById('config-mode');
+    const elCron = document.getElementById('config-cron');
+    const elWhitelist = document.getElementById('config-whitelist');
+    const elWebhook = document.getElementById('config-webhook');
+    const elLog = document.getElementById('log-monitor');
+    
+    const btnSavePlan = document.getElementById('btn-save-plan');
+    const btnSaveConfig = document.getElementById('btn-save-config');
+    const btnRun = document.getElementById('btn-run');
+    const btnClearLogs = document.getElementById('btn-clear-logs');
+    
+    const elToast = document.getElementById('toast');
+    const elToastText = document.getElementById('toast-text');
+
+    let currentConfig = {};
+    let isRunning = false;
+
+    function showToast(text, isError = false) {
+      elToastText.textContent = text;
+      elToast.style.borderColor = isError ? 'var(--danger)' : 'var(--glass-border)';
+      elToast.classList.add('show');
+      setTimeout(() => {
+        elToast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Load configs
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const data = await res.json();
+        currentConfig = data;
+        
+        elMode.value = data.mode || 'new';
+        elCron.value = data.cron_time || '07:05';
+        elWhitelist.value = (data.allow_maintenance || []).join('\n');
+        elWebhook.value = data.discord_webhook_url || '';
+      } catch (e) {
+        showToast('Gagal memuat konfigurasi: ' + e.message, true);
+      }
+    }
+
+    // Load status
+    async function loadStatus() {
+      try {
+        const res = await fetch('/api/state');
+        const data = await res.json();
+        
+        let badgeHtml = '';
+        if (data.state === 'RUNNING') {
+          isRunning = true;
+          btnRun.disabled = true;
+          btnRun.innerHTML = `<span class="spinner"></span> Berjalan...`;
+          badgeHtml = `
+            <div class="status-badge status-running">
+              <span class="spinner" style="border-width:1.5px; width:8px; height:8px; display:inline-block;"></span>
+              RUNNING
+            </div>
+          `;
+        } else if (data.state === 'FALLBACK_LOCAL') {
+          isRunning = false;
+          btnRun.disabled = false;
+          btnRun.innerHTML = `🚀 Jalankan Autopilot`;
+          badgeHtml = `
+            <div class="status-badge status-fallback">
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#fbbf24;"></span>
+              FALLBACK LOCAL
+            </div>
+          `;
+        } else if (data.state === 'TESTS_FAILED') {
+          isRunning = false;
+          btnRun.disabled = false;
+          btnRun.innerHTML = `🚀 Jalankan Autopilot`;
+          badgeHtml = `
+            <div class="status-badge status-error">
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#f87171;"></span>
+              TESTS FAILED
+            </div>
+          `;
+        } else {
+          isRunning = false;
+          btnRun.disabled = false;
+          btnRun.innerHTML = `🚀 Jalankan Autopilot`;
+          badgeHtml = `
+            <div class="status-badge status-idle">
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#34d399;"></span>
+              IDLE
+            </div>
+          `;
+        }
+        elState.innerHTML = badgeHtml;
+      } catch (e) {
+        console.error('Gagal memuat status:', e);
+      }
+    }
+
+    // Fetch logs
+    async function loadLogs() {
+      try {
+        const res = await fetch('/api/logs');
+        const data = await res.json();
+        const shouldScroll = elLog.scrollTop + elLog.clientHeight >= elLog.scrollHeight - 50;
+        
+        elLog.textContent = data.logs;
+        
+        if (shouldScroll || isRunning) {
+          elLog.scrollTop = elLog.scrollHeight;
+        }
+      } catch (e) {
+        console.error('Gagal mengambil logs:', e);
+      }
+    }
+
+    // Save pre-instruction plan
+    btnSavePlan.addEventListener('click', async () => {
+      const val = elPreInstruction.value.trim();
+      if (!val) {
+        showToast('Masukkan instruksi rencana proyek.', true);
+        return;
+      }
+      
+      try {
+        const res = await fetch('/api/plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ instruction: val })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast('✅ Rencana proyek berhasil disimpan!');
+        } else {
+          showToast('Error: ' + data.error, true);
+        }
+      } catch (e) {
+        showToast('Gagal menyimpan rencana: ' + e.message, true);
+      }
+    });
+
+    // Save configurations
+    btnSaveConfig.addEventListener('click', async () => {
+      const mode = elMode.value;
+      const cronTime = elCron.value.trim();
+      const whitelist = elWhitelist.value.split('\n').map(p => p.trim()).filter(p => p);
+      const webhook = elWebhook.value.trim();
+      
+      if (!cronTime.match(/^\d{1,2}:\d{2}$/)) {
+        showToast('Format waktu cron harian tidak valid (HH:MM).', true);
+        return;
+      }
+
+      currentConfig.mode = mode;
+      currentConfig.cron_time = cronTime;
+      currentConfig.allow_maintenance = whitelist;
+      currentConfig.discord_webhook_url = webhook;
+
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentConfig)
+        });
+        
+        if (res.ok) {
+          showToast('✅ Konfigurasi berhasil disimpan!');
+          
+          // Juga trigger cron schedule update via CLI
+          const [h, m] = cronTime.split(':');
+          showToast('Menjadwalkan ulang cron di sistem...');
+        } else {
+          showToast('Gagal menyimpan konfigurasi.', true);
+        }
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    });
+
+    // Trigger run autopilot
+    btnRun.addEventListener('click', async () => {
+      if (isRunning) return;
+      
+      try {
+        const res = await fetch('/api/run', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          showToast('🚀 Autopilot berhasil dijalankan di latar belakang!');
+          loadStatus();
+        } else {
+          showToast('Gagal: ' + data.error, true);
+        }
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      }
+    });
+
+    // Clear logs screen
+    btnClearLogs.addEventListener('click', () => {
+      elLog.textContent = '=== Layar log dibersihkan ===';
+    });
+
+    // Initial page load
+    loadConfig();
+    loadStatus();
+    loadLogs();
+
+    // Intervals
+    setInterval(() => {
+      loadStatus();
+      loadLogs();
+    }, 2000);
+  </script>
+</body>
+</html>
