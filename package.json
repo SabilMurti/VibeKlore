@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node dashboard/app.js",
     "dashboard": "node dashboard/app.js",
-    "test": "node math.test.js && node /home/murtix/Projects/test-healing/run-tests.js"
+    "test": "node test.js"
   },
   "dependencies": {
     "express": "^4.19.2"

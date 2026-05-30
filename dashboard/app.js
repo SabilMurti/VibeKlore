@@ -1,7 +1,29 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
+
+function updateCrontab(timeStr) {
+  if (!timeStr || !timeStr.match(/^\d{1,2}:\d{2}$/)) return;
+  const [hourStr, minStr] = timeStr.split(':');
+  const hour = parseInt(hourStr, 10);
+  const min = parseInt(minStr, 10);
+  if (hour < 0 || hour > 23 || min < 0 || min > 59) return;
+  
+  const cronSchedule = `${min} ${hour} * * *`;
+  const pythonPath = '/usr/bin/python3';
+  const scriptPath = path.join(VIBE_DIR, 'sleeping_developer.py');
+  const logPath = path.join(VIBE_DIR, 'autopilot.log');
+  const cronCommand = `${cronSchedule} ${pythonPath} ${scriptPath} >> ${logPath} 2>&1`;
+  
+  exec(`(crontab -l 2>/dev/null | grep -F -v "sleeping_developer.py" ; echo "${cronCommand}") | crontab -`, (err, stdout, stderr) => {
+    if (err) {
+      console.error(`[Dashboard] Gagal memperbarui crontab: ${stderr}`);
+    } else {
+      console.log(`[Dashboard] Jadwal cron job harian berhasil diatur ke pukul: ${timeStr}`);
+    }
+  });
+}
 
 const app = express();
 const PORT = process.env.PORT || 3300;
@@ -33,7 +55,26 @@ app.get('/api/config', (req, res) => {
 app.post('/api/config', (req, res) => {
   try {
     const newConfig = req.body;
+    
+    // Server-side validation
+    if (newConfig.cron_time) {
+      if (!newConfig.cron_time.match(/^\d{1,2}:\d{2}$/)) {
+        return res.status(400).json({ error: 'Format waktu cron tidak valid (HH:MM)' });
+      }
+      const [hourStr, minStr] = newConfig.cron_time.split(':');
+      const hour = parseInt(hourStr, 10);
+      const min = parseInt(minStr, 10);
+      if (hour < 0 || hour > 23 || min < 0 || min > 59) {
+        return res.status(400).json({ error: 'Nilai jam atau menit tidak valid' });
+      }
+    }
+    
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(newConfig, null, 2), 'utf-8');
+    
+    if (newConfig.cron_time) {
+      updateCrontab(newConfig.cron_time);
+    }
+    
     res.json({ message: 'Configuration saved successfully', config: newConfig });
   } catch (e) {
     res.status(500).json({ error: e.message });
