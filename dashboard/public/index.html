@@ -6,21 +6,23 @@
   <title>VibeKlore Autopilot Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-      --glass-bg: rgba(255, 255, 255, 0.03);
+      --bg-gradient: linear-gradient(135deg, #090d16 0%, #0f1026 50%, #050510 100%);
+      --glass-bg: rgba(255, 255, 255, 0.02);
       --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-hover: rgba(255, 255, 255, 0.07);
-      --primary: #818cf8;
-      --primary-glow: rgba(129, 140, 248, 0.3);
-      --accent: #ec4899;
-      --success: #34d399;
-      --warning: #fbbf24;
-      --danger: #f87171;
+      --glass-hover: rgba(255, 255, 255, 0.06);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --accent: #d946ef;
+      --accent-glow: rgba(217, 70, 239, 0.25);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
       --text: #f8fafc;
-      --text-muted: #94a3b8;
+      --text-muted: #64748b;
     }
 
     * {
@@ -37,32 +39,91 @@
       overflow-x: hidden;
       display: flex;
       flex-direction: column;
+      position: relative;
+    }
+
+    /* Background blobs for premium glowing style */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.4;
+      animation: float 25s infinite alternate ease-in-out;
+    }
+
+    .blob-1 {
+      top: -10%;
+      left: -10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 80%);
+    }
+
+    .blob-2 {
+      bottom: -10%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 80%);
+      animation-delay: -10s;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(60px, 40px) scale(1.15); }
+      100% { transform: translate(-20px, 80px) scale(0.9); }
     }
 
     header {
-      padding: 2rem 4rem;
+      padding: 1.5rem 3rem;
       border-bottom: 1px solid var(--glass-border);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(15, 23, 42, 0.3);
+      background: rgba(9, 13, 22, 0.4);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     header h1 {
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-weight: 800;
-      background: linear-gradient(to right, var(--primary), var(--accent));
+      background: linear-gradient(to right, #818cf8, var(--accent));
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      letter-spacing: -1px;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    header h1::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--accent);
+      animation: pulse-glow 2s infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 12px var(--accent); }
+      50% { transform: scale(1.3); box-shadow: 0 0 20px var(--accent); }
     }
 
     header .subtitle {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
-      margin-top: 0.2rem;
+      margin-top: 0.1rem;
+      font-weight: 400;
     }
 
     .main-container {
@@ -71,7 +132,7 @@
       margin: 2rem auto;
       padding: 0 2rem;
       display: grid;
-      grid-template-columns: 1fr 1.5fr;
+      grid-template-columns: 1.1fr 1.4fr;
       gap: 2rem;
       flex-grow: 1;
     }
@@ -85,29 +146,32 @@
     .card {
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
-      border-radius: 16px;
+      border-radius: 20px;
       padding: 2rem;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
-      transition: all 0.3s ease;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .card:hover {
-      border-color: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
     }
 
     .card-title {
-      font-size: 1.3rem;
-      font-weight: 600;
+      font-size: 1.25rem;
+      font-weight: 700;
       border-bottom: 1px solid var(--glass-border);
       padding-bottom: 0.8rem;
-      color: var(--primary);
+      color: #818cf8;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      letter-spacing: -0.2px;
     }
 
     .form-group {
@@ -117,46 +181,49 @@
     }
 
     label {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    input[type="text"], select, textarea {
-      background: rgba(15, 23, 42, 0.6);
+    input[type="text"], input[type="password"], select, textarea {
+      background: rgba(5, 5, 10, 0.5);
       border: 1px solid var(--glass-border);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 0.8rem 1rem;
       color: var(--text);
       font-family: inherit;
       font-size: 0.95rem;
       outline: none;
-      transition: all 0.2s ease;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
       width: 100%;
     }
 
-    input[type="text"]:focus, select:focus, textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 10px var(--primary-glow);
+    input[type="text"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
+      border-color: #818cf8;
+      background-color: rgba(5, 5, 10, 0.7);
+      box-shadow: 0 0 14px var(--primary-glow);
     }
 
     .row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+      gap: 1.2rem;
     }
 
     .btn {
-      background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 0.8rem 1.5rem;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px var(--primary-glow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      box-shadow: 0 4px 20px var(--primary-glow);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -165,7 +232,7 @@
 
     .btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(129, 140, 248, 0.5);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.45);
     }
 
     .btn:active {
@@ -175,73 +242,76 @@
     .btn-secondary {
       background: var(--glass-hover);
       border: 1px solid var(--glass-border);
-      color: var(--text);
+      color: #e2e8f0;
       box-shadow: none;
     }
 
     .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
       box-shadow: none;
     }
 
     .btn-success {
-      background: linear-gradient(135deg, var(--success) 0%, #10b981 100%);
-      box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
+      background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
     }
 
     .btn-success:hover {
-      box-shadow: 0 6px 16px rgba(52, 211, 153, 0.5);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
     }
 
     .status-badge {
       display: inline-flex;
       align-items: center;
-      padding: 0.4rem 0.8rem;
-      border-radius: 30px;
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
       font-size: 0.8rem;
-      font-weight: 600;
-      gap: 0.4rem;
+      font-weight: 700;
+      gap: 0.5rem;
+      letter-spacing: 0.5px;
     }
 
     .status-idle {
-      background: rgba(52, 211, 153, 0.15);
-      color: var(--success);
-      border: 1px solid rgba(52, 211, 153, 0.3);
+      background: rgba(16, 185, 129, 0.1);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
     }
 
     .status-running {
-      background: rgba(129, 140, 248, 0.15);
-      color: var(--primary);
-      border: 1px solid rgba(129, 140, 248, 0.3);
-      animation: pulse 1.5s infinite;
+      background: rgba(99, 102, 241, 0.1);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      animation: pulse 2s infinite;
     }
 
     .status-fallback {
-      background: rgba(251, 191, 36, 0.15);
-      color: var(--warning);
-      border: 1px solid rgba(251, 191, 36, 0.3);
+      background: rgba(245, 158, 11, 0.1);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.25);
     }
 
     .status-error {
-      background: rgba(248, 113, 113, 0.15);
-      color: var(--danger);
-      border: 1px solid rgba(248, 113, 113, 0.3);
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.25);
     }
 
     .log-container {
       font-family: 'JetBrains Mono', monospace;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(5, 5, 10, 0.85);
       border: 1px solid var(--glass-border);
       border-radius: 12px;
       padding: 1.5rem;
       font-size: 0.85rem;
-      line-height: 1.5;
+      line-height: 1.6;
       overflow-y: auto;
       flex-grow: 1;
       height: 480px;
       max-height: 600px;
       white-space: pre-wrap;
-      color: #e2e8f0;
+      color: #cbd5e1;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
       position: relative;
     }
 
@@ -254,7 +324,7 @@
     }
 
     .log-container::-webkit-scrollbar-thumb {
-      background: var(--glass-border);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 4px;
     }
 
@@ -263,20 +333,21 @@
     }
 
     @keyframes pulse {
-      0% { opacity: 0.6; }
+      0% { opacity: 0.7; }
       50% { opacity: 1; }
-      100% { opacity: 0.6; }
+      100% { opacity: 0.7; }
     }
 
     footer {
-      padding: 2rem;
+      padding: 2.5rem;
       text-align: center;
       font-size: 0.85rem;
       color: var(--text-muted);
       border-top: 1px solid var(--glass-border);
-      margin-top: 2rem;
-      backdrop-filter: blur(8px);
-      background: rgba(15, 23, 42, 0.2);
+      margin-top: auto;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(9, 13, 22, 0.3);
     }
 
     .spinner {
@@ -298,18 +369,19 @@
       position: fixed;
       bottom: 2rem;
       right: 2rem;
-      background: rgba(30, 41, 59, 0.9);
+      background: rgba(9, 13, 22, 0.95);
       border: 1px solid var(--glass-border);
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      padding: 1.2rem 1.8rem;
+      border-radius: 12px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
       z-index: 1000;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.6rem;
       transform: translateY(150%);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .notification.show {
@@ -318,6 +390,10 @@
   </style>
 </head>
 <body>
+  <!-- Ambient background blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
   <header>
     <div>
       <h1>VibeKlore Autopilot</h1>
@@ -325,7 +401,7 @@
     </div>
     <div id="state-badge-container">
       <div class="status-badge status-idle">
-        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#34d399;"></span>
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#10b981; box-shadow: 0 0 8px #10b981;"></span>
         IDLE
       </div>
     </div>
@@ -340,7 +416,7 @@
       <div class="form-group">
         <label for="pre-instruction">Pre-Instruction (Target Proyek Berikutnya)</label>
         <textarea id="pre-instruction" rows="3" placeholder="Masukkan ide proyek (contoh: buat website portfolio responsif)"></textarea>
-        <button id="btn-save-plan" class="btn btn-secondary" style="align-self: flex-end; padding: 0.5rem 1rem; font-size: 0.85rem;">Simpan Rencana</button>
+        <button id="btn-save-plan" class="btn btn-secondary" style="align-self: flex-end; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px;">Simpan Rencana</button>
       </div>
 
       <!-- Mode & Cron Time -->
@@ -372,7 +448,10 @@
         </div>
         <div class="form-group">
           <label for="config-api-key">API Key</label>
-          <input type="password" id="config-api-key" placeholder="sk-...">
+          <div style="position: relative; display: flex; align-items: center; width: 100%;">
+            <input type="password" id="config-api-key" placeholder="sk-..." style="padding-right: 2.5rem; width: 100%;">
+            <button type="button" id="btn-toggle-key" style="position: absolute; right: 10px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; outline: none; padding: 0.2rem; display: flex; align-items: center; justify-content: center; transition: color 0.2s ease;">👁️</button>
+          </div>
         </div>
       </div>
 
@@ -395,7 +474,7 @@
     <div class="card" style="display: flex; flex-direction: column;">
       <div class="card-title">
         Monitor Aktivitas Live
-        <button id="btn-clear-logs" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 4px;">Clear Screen</button>
+        <button id="btn-clear-logs" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px;">Clear Screen</button>
       </div>
 
       <div class="form-group" style="flex-grow: 1; display: flex; flex-direction: column;">
@@ -410,7 +489,7 @@
   </div>
 
   <footer>
-    VibeKlore Autopilot © 2026. Made with Google Antigravity & Aider.
+    VibeKlore Autopilot © 2026. Made with Google Antigravity.
   </footer>
 
   <script>
@@ -423,6 +502,7 @@
     const elLog = document.getElementById('log-monitor');
     const elApiBase = document.getElementById('config-api-base');
     const elApiKey = document.getElementById('config-api-key');
+    const btnToggleKey = document.getElementById('btn-toggle-key');
     
     const btnSavePlan = document.getElementById('btn-save-plan');
     const btnSaveConfig = document.getElementById('btn-save-config');
@@ -443,6 +523,17 @@
         elToast.classList.remove('show');
       }, 3000);
     }
+
+    // Toggle API Key view mode (Show/Hide password)
+    btnToggleKey.addEventListener('click', () => {
+      if (elApiKey.type === 'password') {
+        elApiKey.type = 'text';
+        btnToggleKey.textContent = '🙈';
+      } else {
+        elApiKey.type = 'password';
+        btnToggleKey.textContent = '👁️';
+      }
+    });
 
     // Load configs
     async function loadConfig() {
@@ -485,7 +576,7 @@
           btnRun.innerHTML = `🚀 Jalankan Autopilot`;
           badgeHtml = `
             <div class="status-badge status-fallback">
-              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#fbbf24;"></span>
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#f59e0b; box-shadow: 0 0 8px #f59e0b;"></span>
               FALLBACK LOCAL
             </div>
           `;
@@ -495,7 +586,7 @@
           btnRun.innerHTML = `🚀 Jalankan Autopilot`;
           badgeHtml = `
             <div class="status-badge status-error">
-              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#f87171;"></span>
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#ef4444; box-shadow: 0 0 8px #ef4444;"></span>
               TESTS FAILED
             </div>
           `;
@@ -505,7 +596,7 @@
           btnRun.innerHTML = `🚀 Jalankan Autopilot`;
           badgeHtml = `
             <div class="status-badge status-idle">
-              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#34d399;"></span>
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#10b981; box-shadow: 0 0 8px #10b981;"></span>
               IDLE
             </div>
           `;
@@ -516,6 +607,20 @@
       }
     }
 
+    // Colorize logs dynamically with CSS colors
+    function colorizeLogs(text) {
+      if (!text) return '';
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/(\[Orchestrator\])/g, '<span style="color:#a5b4fc; font-weight:bold;">$1</span>')
+        .replace(/(\[Harvester\])/g, '<span style="color:#f472b6; font-weight:bold;">$1</span>')
+        .replace(/(✅|SUKSES|sukses|successfully|success)/gi, '<span style="color:#34d399; font-weight:bold;">$1</span>')
+        .replace(/(❌|GAGAL|gagal|failed|error)/gi, '<span style="color:#f87171; font-weight:bold;">$1</span>')
+        .replace(/(⚠️|WARNING|warning|limit)/gi, '<span style="color:#fbbf24; font-weight:bold;">$1</span>');
+    }
+
     // Fetch logs
     async function loadLogs() {
       try {
@@ -523,7 +628,7 @@
         const data = await res.json();
         const shouldScroll = elLog.scrollTop + elLog.clientHeight >= elLog.scrollHeight - 50;
         
-        elLog.textContent = data.logs;
+        elLog.innerHTML = colorizeLogs(data.logs);
         
         if (shouldScroll || isRunning) {
           elLog.scrollTop = elLog.scrollHeight;
@@ -585,15 +690,12 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(currentConfig)
         });
+        const data = await res.json();
         
         if (res.ok) {
-          showToast('✅ Konfigurasi berhasil disimpan!');
-          
-          // Juga trigger cron schedule update via CLI
-          const [h, m] = cronTime.split(':');
-          showToast('Menjadwalkan ulang cron di sistem...');
+          showToast('✅ Konfigurasi & Jadwal Cron berhasil disimpan!');
         } else {
-          showToast('Gagal menyimpan konfigurasi.', true);
+          showToast('Gagal menyimpan konfigurasi: ' + (data.error || 'Server error'), true);
         }
       } catch (e) {
         showToast('Error: ' + e.message, true);

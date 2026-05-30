@@ -1,7 +1,6 @@
 {
   "allow_maintenance": [
-    "/home/murtix/Projects/VibeKlore",
-    "/home/murtix/Projects/test-healing"
+    "/home/murtix/Projects/VibeKlore"
   ],
   "prevent_deletion": true,
   "git_auto_commit": true,
@@ -11,8 +10,8 @@
   "comet_api_key": "sk-Qj16IMAHsC5yWkjja2yCoFWA3ESRGI3YOdhILopqGjZOKfl2",
   "planner_model": "gpt-4o-mini",
   "fallback_model": "gpt-4o-mini",
-  "mode": "maintenance",
+  "mode": "new",
   "discord_webhook_url": "",
   "github_username": "SabilMurti",
-  "cron_time": "08:00"
+  "cron_time": "06:00"
 }
