@@ -1,0 +1,17 @@
+{
+  "allow_maintenance": [
+    "/home/murtix/Projects/VibeKlore"
+  ],
+  "prevent_deletion": true,
+  "git_auto_commit": true,
+  "max_iterations_per_run": 20,
+  "project_generation_path": "/home/murtix/Projects",
+  "comet_api_base": "https://api.cometapi.com/v1",
+  "comet_api_key": "sk-Qj16IMAHsC5yWkjja2yCoFWA3ESRGI3YOdhILopqGjZOKfl2",
+  "planner_model": "gpt-4o-mini",
+  "fallback_model": "gpt-4o-mini",
+  "mode": "new",
+  "discord_webhook_url": "",
+  "github_username": "SabilMurti",
+  "cron_time": "08:00"
+}

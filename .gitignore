@@ -1,0 +1,9 @@
+node_modules/
+.env
+autopilot.log
+latest_activity.md
+latest_plan.md
+mcp.db
+pre_instruction.txt
+morning_report.md
+.DS_Store
