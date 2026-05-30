@@ -123,7 +123,7 @@ app.post('/api/run', (req, res) => {
     }
     env.PATH = customPaths.join(':') + ':' + (env.PATH || '');
 
-    const child = spawn('python3', [ORCHESTRATOR_PATH], { 
+    const child = spawn('python3', ['-u', ORCHESTRATOR_PATH], { 
       cwd: VIBE_DIR,
       env: env,
       detached: true,

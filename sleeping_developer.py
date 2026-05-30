@@ -494,7 +494,7 @@ def run_project_tests(project_path, config):
         return False, str(e)
 
 def get_github_repo_info(project_path):
-    """Mendapatkan owner dan repo dari git remote origin"""
+    """Mendapatkan owner dan repo dari git remote origin (token-safe)"""
     try:
         remotes = subprocess.check_output(["git", "remote", "-v"], cwd=project_path).decode('utf-8')
         for line in remotes.split("\n"):
@@ -503,8 +503,13 @@ def get_github_repo_info(project_path):
                 if len(parts) >= 2:
                     url = parts[1]
                     if "github.com" in url:
-                        url = url.replace("git@github.com:", "").replace("https://github.com/", "")
+                        # Bersihkan .git extension
                         url = url.replace(".git", "")
+                        # Tangani basic auth token / SSH user prefix
+                        if "@" in url:
+                            url = url.split("@")[-1]
+                        # Bersihkan host prefixes
+                        url = url.replace("github.com/", "").replace("github.com:", "").replace("https://", "")
                         owner_repo = url.split("/")
                         if len(owner_repo) == 2:
                             return owner_repo[0], owner_repo[1]
